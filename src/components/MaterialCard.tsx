@@ -4,12 +4,7 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { GraduationCap, MessageSquare, Monitor, FileText } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-
-interface MaterialCardProps {
-  title: string;
-  type: "academic" | "speaking" | "practice" | "skills";
-  format?: "Computer" | "Paper";
-}
+import { Material } from "@/types/filters";
 
 const icons = {
   academic: GraduationCap,
@@ -18,7 +13,16 @@ const icons = {
   skills: FileText,
 };
 
-export function MaterialCard({ title, type, format }: MaterialCardProps) {
+export function MaterialCard({ 
+  title, 
+  type, 
+  format,
+  materialType,
+  topic,
+  testType,
+  testSkill,
+  bandScore 
+}: Material) {
   const Icon = icons[type];
   const navigate = useNavigate();
   
@@ -36,12 +40,20 @@ export function MaterialCard({ title, type, format }: MaterialCardProps) {
           </div>
           {format && (
             <Badge variant="secondary" className="font-medium">
-              {format}
+              {format === "Computer" ? "On computer" : "On paper"}
             </Badge>
           )}
         </div>
         
         <h3 className="text-lg font-semibold leading-tight">{title}</h3>
+        
+        {(materialType || topic || testType || testSkill || bandScore) && (
+          <div className="flex flex-wrap gap-2">
+            {materialType && <Badge variant="outline">{materialType}</Badge>}
+            {testSkill && <Badge variant="outline">{testSkill}</Badge>}
+            {bandScore && <Badge variant="outline">{bandScore}</Badge>}
+          </div>
+        )}
         
         <div className="space-y-3">
           <Button 
