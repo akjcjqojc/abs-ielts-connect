@@ -2,42 +2,106 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { FileText, BookOpen, CheckCircle } from "lucide-react";
+import { FileText, BookOpen, CheckCircle, Clock, ArrowLeft, ArrowRight } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
-import { useState } from "react";
-
-type TestResult = {
-  score: number;
-  totalQuestions: number;
-  completedAt: string;
-};
+import { useState, useEffect } from "react";
+import { mockTest } from "@/data/testData";
+import { TestSection, TestResult, UserAnswers } from "@/types/test";
+import { Textarea } from "@/components/ui/textarea";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Label } from "@/components/ui/label";
+import { useToast } from "@/hooks/use-toast";
 
 export default function TestDetails() {
   const navigate = useNavigate();
+  const { toast } = useToast();
   const { id } = useParams();
-  const [result, setResult] = useState<TestResult | null>(null);
+  const [currentSection, setCurrentSection] = useState<number>(0);
+  const [userAnswers, setUserAnswers] = useState<UserAnswers>({});
+  const [timeLeft, setTimeLeft] = useState<number>(0);
   const [isTestStarted, setIsTestStarted] = useState(false);
+  const [result, setResult] = useState<TestResult | null>(null);
+
+  useEffect(() => {
+    if (isTestStarted && timeLeft > 0) {
+      const timer = setInterval(() => {
+        setTimeLeft((prev) => prev - 1);
+      }, 1000);
+
+      if (timeLeft === 300) { // 5 minutes warning
+        toast({
+          title: "Time Warning",
+          description: "5 minutes remaining in this section!",
+          variant: "destructive",
+        });
+      }
+
+      return () => clearInterval(timer);
+    }
+  }, [isTestStarted, timeLeft, toast]);
 
   const handleStartTest = () => {
     setIsTestStarted(true);
-    // In a real app, this would load the actual test questions
-    console.log("Starting test:", id);
+    setTimeLeft(mockTest[0].duration * 60);
   };
 
-  const handleViewAnswers = () => {
-    // In a real app, this would open the PDF with answers
-    console.log("Viewing answers for test:", id);
+  const handleAnswerChange = (questionId: number, answer: string) => {
+    setUserAnswers((prev) => ({
+      ...prev,
+      [questionId]: answer,
+    }));
+  };
+
+  const handleNextSection = () => {
+    if (currentSection < mockTest.length - 1) {
+      setCurrentSection((prev) => prev + 1);
+      setTimeLeft(mockTest[currentSection + 1].duration * 60);
+    }
+  };
+
+  const calculateScore = (section: TestSection): number => {
+    let correctAnswers = 0;
+    section.questions.forEach((question) => {
+      if (userAnswers[question.id] === question.correctAnswer) {
+        correctAnswers++;
+      }
+    });
+    return (correctAnswers / section.questions.length) * 9; // IELTS scoring is on a 9-band scale
   };
 
   const handleTestSubmit = () => {
-    // Simulating test completion
-    const mockResult: TestResult = {
-      score: 7.5,
-      totalQuestions: 40,
+    const sectionScores = {
+      Listening: calculateScore(mockTest[0]),
+      Reading: calculateScore(mockTest[1]),
+      Writing: calculateScore(mockTest[2]),
+      Speaking: calculateScore(mockTest[3]),
+    };
+
+    const overallScore = Number(
+      (
+        (sectionScores.Listening +
+          sectionScores.Reading +
+          sectionScores.Writing +
+          sectionScores.Speaking) /
+        4
+      ).toFixed(1)
+    );
+
+    const result: TestResult = {
+      score: overallScore,
+      totalQuestions: mockTest.reduce((acc, section) => acc + section.questions.length, 0),
+      sectionScores,
       completedAt: new Date().toISOString(),
     };
-    setResult(mockResult);
+
+    setResult(result);
     setIsTestStarted(false);
+  };
+
+  const formatTime = (seconds: number): string => {
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = seconds % 60;
+    return `${minutes}:${remainingSeconds.toString().padStart(2, "0")}`;
   };
 
   return (
@@ -65,38 +129,24 @@ export default function TestDetails() {
                 </div>
               </div>
               <Button onClick={handleStartTest} className="bg-primary">
-                Access now
+                Start Test
               </Button>
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="grid gap-4 md:grid-cols-2">
-                <div className="flex items-start gap-3">
-                  <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                    <BookOpen className="h-5 w-5 text-primary" />
+                {mockTest.map((section) => (
+                  <div key={section.name} className="flex items-start gap-3">
+                    <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                      <BookOpen className="h-5 w-5 text-primary" />
+                    </div>
+                    <div>
+                      <h3 className="font-medium">{section.name}</h3>
+                      <p className="text-sm text-muted-foreground">
+                        {section.duration} minutes - {section.questions.length} questions
+                      </p>
+                    </div>
                   </div>
-                  <div>
-                    <h3 className="font-medium">Test Content</h3>
-                    <p className="text-sm text-muted-foreground">
-                      Complete practice test with all four sections: Listening,
-                      Reading, Writing, and Speaking
-                    </p>
-                  </div>
-                </div>
-                <div className="flex items-start gap-3">
-                  <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                    <FileText className="h-5 w-5 text-primary" />
-                  </div>
-                  <div>
-                    <h3 className="font-medium">Answer Key</h3>
-                    <Button
-                      variant="link"
-                      className="h-auto p-0 text-sm text-muted-foreground"
-                      onClick={handleViewAnswers}
-                    >
-                      View detailed answers (PDF)
-                    </Button>
-                  </div>
-                </div>
+                ))}
               </div>
             </CardContent>
           </Card>
@@ -104,16 +154,59 @@ export default function TestDetails() {
 
         {isTestStarted && (
           <Card className="mb-8">
-            <CardContent className="p-6">
-              <h2 className="text-2xl font-semibold mb-6">Practice Test</h2>
-              <div className="space-y-8">
-                {/* This would be replaced with actual test questions */}
-                <div className="space-y-4">
-                  <p className="text-muted-foreground">
-                    Sample test question would appear here...
-                  </p>
-                  <Button onClick={handleTestSubmit}>Submit Test</Button>
+            <CardHeader className="flex-row items-center justify-between">
+              <div>
+                <h2 className="text-2xl font-semibold">{mockTest[currentSection].name} Section</h2>
+                <p className="text-muted-foreground">
+                  Question {currentSection + 1} of {mockTest.length}
+                </p>
+              </div>
+              <div className="flex items-center gap-2">
+                <Clock className="h-5 w-5 text-primary" />
+                <span className="font-medium">{formatTime(timeLeft)}</span>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-8">
+              {mockTest[currentSection].questions.map((question) => (
+                <div key={question.id} className="space-y-4">
+                  <h3 className="text-lg font-medium">{question.question}</h3>
+                  {question.options ? (
+                    <RadioGroup
+                      value={userAnswers[question.id]}
+                      onValueChange={(value) => handleAnswerChange(question.id, value)}
+                    >
+                      {question.options.map((option) => (
+                        <div key={option} className="flex items-center space-x-2">
+                          <RadioGroupItem value={option} id={`${question.id}-${option}`} />
+                          <Label htmlFor={`${question.id}-${option}`}>{option}</Label>
+                        </div>
+                      ))}
+                    </RadioGroup>
+                  ) : (
+                    <Textarea
+                      value={userAnswers[question.id] || ""}
+                      onChange={(e) => handleAnswerChange(question.id, e.target.value)}
+                      placeholder="Type your answer here..."
+                      className="min-h-[200px]"
+                    />
+                  )}
                 </div>
+              ))}
+              <div className="flex justify-between">
+                <Button
+                  variant="outline"
+                  onClick={() => setCurrentSection((prev) => Math.max(0, prev - 1))}
+                  disabled={currentSection === 0}
+                >
+                  <ArrowLeft className="mr-2 h-4 w-4" /> Previous Section
+                </Button>
+                {currentSection < mockTest.length - 1 ? (
+                  <Button onClick={handleNextSection}>
+                    Next Section <ArrowRight className="ml-2 h-4 w-4" />
+                  </Button>
+                ) : (
+                  <Button onClick={handleTestSubmit}>Submit Test</Button>
+                )}
               </div>
             </CardContent>
           </Card>
@@ -143,9 +236,14 @@ export default function TestDetails() {
                   </div>
                 </div>
                 <div>
-                  <h3 className="font-medium mb-2">Questions Completed</h3>
-                  <div className="text-4xl font-bold">
-                    {result.totalQuestions}
+                  <h3 className="font-medium mb-2">Section Scores</h3>
+                  <div className="space-y-2">
+                    {Object.entries(result.sectionScores).map(([section, score]) => (
+                      <div key={section} className="flex justify-between">
+                        <span>{section}</span>
+                        <span className="font-medium">{score.toFixed(1)}</span>
+                      </div>
+                    ))}
                   </div>
                 </div>
               </div>
