@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { GraduationCap, MessageSquare, Monitor, FileText } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 interface MaterialCardProps {
   title: string;
@@ -19,6 +20,12 @@ const icons = {
 
 export function MaterialCard({ title, type, format }: MaterialCardProps) {
   const Icon = icons[type];
+  const navigate = useNavigate();
+  
+  const handleAccessClick = () => {
+    // For demo purposes, we'll use a fixed ID of 1
+    navigate(`/test/1`);
+  };
   
   return (
     <Card className="relative overflow-hidden group card-hover animate-fade-in">
@@ -37,7 +44,10 @@ export function MaterialCard({ title, type, format }: MaterialCardProps) {
         <h3 className="text-lg font-semibold leading-tight">{title}</h3>
         
         <div className="space-y-3">
-          <Button className="w-full bg-primary hover:bg-primary/90 text-white">
+          <Button 
+            className="w-full bg-primary hover:bg-primary/90 text-white"
+            onClick={handleAccessClick}
+          >
             Access now
           </Button>
           <Button variant="outline" className="w-full">
