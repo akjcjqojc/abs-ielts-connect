@@ -10,9 +10,9 @@ import {
 } from "@/components/ui/popover"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Label } from "@/components/ui/label"
-import { MaterialType, Topic, TestType, TestSkill, BandScore, TestFormat } from "@/types/filters";
+import { MaterialType, Topic, TestType, TestSkill, BandScore, TestFormat, Filters } from "@/types/filters";
 
-const filterOptions = {
+const filterOptions: Record<keyof Filters, Array<any>> = {
   materialType: ["IELTS podcast", "IELTS video", "IELTS article", "IELTS practice test"] as MaterialType[],
   topic: ["Band Scores", "Immigration", "Preparation", "Results", "Test Day"] as Topic[],
   testType: ["Academic & Academic UKVI", "General Training", "Life Skills A1", "Life Skills A2", "Life Skills B1"] as TestType[],
@@ -24,7 +24,7 @@ const filterOptions = {
 export function SearchSection() {
   const { searchQuery, setSearchQuery, activeFilters, setFilter, clearFilters } = useFilters();
 
-  const handleFilterToggle = (category: keyof typeof filterOptions, value: string) => {
+  const handleFilterToggle = <T extends keyof Filters>(category: T, value: Filters[T][number]) => {
     const currentFilters = activeFilters[category];
     const newFilters = currentFilters.includes(value)
       ? currentFilters.filter(v => v !== value)
@@ -32,7 +32,7 @@ export function SearchSection() {
     setFilter(category, newFilters);
   };
 
-  const getActiveFilterCount = (category: keyof typeof filterOptions) => {
+  const getActiveFilterCount = (category: keyof Filters) => {
     return activeFilters[category].length;
   };
 
@@ -78,8 +78,8 @@ export function SearchSection() {
                 className="rounded-full"
               >
                 {category.replace(/([A-Z])/g, ' $1').trim()}
-                {getActiveFilterCount(category as keyof typeof filterOptions) > 0 && 
-                  ` (${getActiveFilterCount(category as keyof typeof filterOptions)})`}
+                {getActiveFilterCount(category as keyof Filters) > 0 && 
+                  ` (${getActiveFilterCount(category as keyof Filters)})`}
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-80">
@@ -92,8 +92,8 @@ export function SearchSection() {
                     <div key={option} className="flex items-center space-x-2">
                       <Checkbox
                         id={`${category}-${option}`}
-                        checked={activeFilters[category as keyof typeof filterOptions].includes(option)}
-                        onCheckedChange={() => handleFilterToggle(category as keyof typeof filterOptions, option)}
+                        checked={activeFilters[category as keyof Filters].includes(option)}
+                        onCheckedChange={() => handleFilterToggle(category as keyof Filters, option)}
                       />
                       <Label htmlFor={`${category}-${option}`}>{option}</Label>
                     </div>

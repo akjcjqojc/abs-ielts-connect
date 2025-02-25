@@ -1,12 +1,12 @@
 
 import React, { createContext, useContext, useState } from 'react';
-import { Filters } from '@/types/filters';
+import { Filters, MaterialType, Topic, TestType, TestSkill, BandScore, TestFormat } from '@/types/filters';
 
 interface FilterContextType {
   searchQuery: string;
   setSearchQuery: (query: string) => void;
   activeFilters: Filters;
-  setFilter: (category: keyof Filters, values: any[]) => void;
+  setFilter: <T extends keyof Filters>(category: T, values: Filters[T]) => void;
   clearFilters: () => void;
 }
 
@@ -23,7 +23,7 @@ export function FilterProvider({ children }: { children: React.ReactNode }) {
     testFormat: [],
   });
 
-  const setFilter = (category: keyof Filters, values: any[]) => {
+  const setFilter = <T extends keyof Filters>(category: T, values: Filters[T]) => {
     setActiveFilters(prev => ({
       ...prev,
       [category]: values,
