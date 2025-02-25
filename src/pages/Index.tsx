@@ -2,6 +2,7 @@
 import { Header } from "@/components/Header";
 import { SearchSection } from "@/components/SearchSection";
 import { MaterialCard } from "@/components/MaterialCard";
+import { Button } from "@/components/ui/button";
 
 const materials = [
   {

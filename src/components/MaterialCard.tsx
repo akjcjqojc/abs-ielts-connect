@@ -2,7 +2,7 @@
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Graduation, MessageSquare, Monitor, FileText } from "lucide-react";
+import { GraduationCap, MessageSquare, Monitor, FileText } from "lucide-react";
 
 interface MaterialCardProps {
   title: string;
@@ -11,7 +11,7 @@ interface MaterialCardProps {
 }
 
 const icons = {
-  academic: Graduation,
+  academic: GraduationCap,
   speaking: MessageSquare,
   practice: Monitor,
   skills: FileText,
