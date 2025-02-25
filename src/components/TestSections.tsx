@@ -2,8 +2,41 @@
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Headphones, BookOpen, Pencil, Mic } from "lucide-react";
+import { LucideIcon } from "lucide-react";
 
-const sections = {
+type SubSection = {
+  title: string;
+  description: string;
+  type: string;
+};
+
+type BaseSection = {
+  icon: LucideIcon;
+  description: string;
+  duration: string;
+};
+
+type ListeningReadingSection = BaseSection & {
+  number_of_questions: number;
+  sections: SubSection[];
+};
+
+type WritingSection = BaseSection & {
+  tasks: SubSection[];
+};
+
+type SpeakingSection = BaseSection & {
+  parts: SubSection[];
+};
+
+type Sections = {
+  Listening: ListeningReadingSection;
+  Reading: ListeningReadingSection;
+  Writing: WritingSection;
+  Speaking: SpeakingSection;
+};
+
+const sections: Sections = {
   "Listening": {
     icon: Headphones,
     description: "The Listening section tests your ability to understand spoken English in various contexts.",
@@ -98,7 +131,11 @@ export function TestSections() {
       <div className="grid gap-6 md:grid-cols-2">
         {Object.entries(sections).map(([name, section]) => {
           const Icon = section.icon;
-          const items = section.sections || section.tasks || section.parts || [];
+          const items = 'sections' in section 
+            ? section.sections 
+            : 'tasks' in section 
+            ? section.tasks 
+            : section.parts;
           
           return (
             <Card key={name} className="group">
@@ -111,7 +148,7 @@ export function TestSections() {
                     <h3 className="text-xl font-semibold">{name}</h3>
                     <div className="flex gap-2 mt-1">
                       <Badge variant="secondary">{section.duration}</Badge>
-                      {section.number_of_questions && (
+                      {'number_of_questions' in section && (
                         <Badge variant="outline">{section.number_of_questions} questions</Badge>
                       )}
                     </div>
