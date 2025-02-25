@@ -3,6 +3,7 @@ import { Header } from "@/components/Header";
 import { SearchSection } from "@/components/SearchSection";
 import { MaterialCard } from "@/components/MaterialCard";
 import { Button } from "@/components/ui/button";
+import { TestSections } from "@/components/TestSections";
 
 const materials = [
   {
@@ -71,6 +72,8 @@ const Index = () => {
               ))}
             </div>
           </section>
+
+          <TestSections />
         </div>
       </main>
     </div>
